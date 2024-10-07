@@ -13,6 +13,9 @@ return new class extends Migration
     {
         Schema::create('to_dos', function (Blueprint $table) {
             $table->id();
+            $table->foreignId("user_id")->constrained("user");
+            $table->longText("description");
+            $table->string("status");
             $table->timestamps();
         });
     }
