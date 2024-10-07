@@ -2,11 +2,14 @@
 
 namespace App\Http\Controllers;
 
+use App\Traits\ApiResponseTraits;
 use Auth;
 use Illuminate\Http\Request;
 
 class AuthController extends Controller
 {
+    use ApiResponseTraits;
+
     public function login(Request $request) {
         $formData = $request->validate([
             "username" => "required",
@@ -14,19 +17,16 @@ class AuthController extends Controller
         ]);
 
         if(Auth::attempt($formData)) {
-            return response()->json([
-                "success" => true,
-                "message" => "Login Successful",
+            return $this->sendResponse([
                 "user_type" => auth()->user()->user_type,
-            ]);
+            ], "Login Successful");
+        } else {
+            return $this->sendError([], "Incorrect username or password");
         }
     }
 
     public function logout() {
         auth()->user()->tokens()->delete();
-        return response()->json([
-            "success" => true,
-            "message" => "Logout Successful",
-        ]);
+        return $this->sendResponse([], "Logout successful");
     }
 }
