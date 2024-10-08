@@ -3,16 +3,21 @@
 namespace App\Http\Controllers;
 
 use App\Models\ToDo;
+use App\Traits\ApiResponseTraits;
+use DB;
 use Illuminate\Http\Request;
 
 class ToDoController extends Controller
 {
+    use ApiResponseTraits;
     /**
      * Display a listing of the resource.
      */
     public function index()
     {
-        //
+        $userId = request()->get("user_id");
+        $data = ToDo::where("user_id", $userId)->paginate(10);
+        return $this->sendResponse($data, "To do list of current user.");
     }
 
     /**
@@ -28,7 +33,23 @@ class ToDoController extends Controller
      */
     public function store(Request $request)
     {
-        //
+        $formData = $request->validate([
+            "description" => "required",
+            "status" => ["required", "in:ongoing,done"],
+        ]);
+
+        try {
+            DB::beginTransaction();
+
+            $formData["user_id"] = auth()->user()->id;
+            ToDo::create($formData);
+
+            DB::commit();
+            return $this->sendResponse([], "To Do Item Successfully Created.");
+        } catch (\Throwable $th) {
+            DB::rollBack();
+            return $this->sendError($th, "Something went wrong");
+        }
     }
 
     /**
@@ -52,7 +73,20 @@ class ToDoController extends Controller
      */
     public function update(Request $request, ToDo $toDo)
     {
-        //
+        $formData = $request->validate([
+            "description" => "required",
+            "status" => ["required", "in:ongoing,done"],
+        ]);
+
+        try {
+            DB::beginTransaction();
+            $toDo->update($formData);
+            DB::commit();
+            return $this->sendResponse([], "To Do Item Successfully Updated.");
+        } catch (\Throwable $th) {
+            DB::rollBack();
+            return $this->sendError($th, "Something went wrong");
+        }
     }
 
     /**
@@ -60,6 +94,7 @@ class ToDoController extends Controller
      */
     public function destroy(ToDo $toDo)
     {
-        //
+        $toDo->delete();
+        return $this->sendResponse([], "To Do Item Successfully Deleted.");
     }
 }
