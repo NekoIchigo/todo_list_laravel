@@ -17,7 +17,7 @@ class UserFactory extends Factory
     protected static ?string $password;
 
     /**
-     * Define the model's default state.
+ * Define the model's default state.
      *
      * @return array<string, mixed>
      */
@@ -27,6 +27,7 @@ class UserFactory extends Factory
             'username' => fake()->userName(),
             // 'email' => fake()->unique()->safeEmail(),
             // 'email_verified_at' => now(),
+            'user_type' => $this->faker->randomElement(["user", "admin"]),
             'password' => static::$password ??= Hash::make('password'),
             'remember_token' => Str::random(10),
         ];
