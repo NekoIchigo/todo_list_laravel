@@ -6,6 +6,7 @@ use DB;
 use Hash;
 use Illuminate\Database\Console\Seeds\WithoutModelEvents;
 use Illuminate\Database\Seeder;
+use Str;
 
 class AdminSeeder extends Seeder
 {
@@ -18,6 +19,9 @@ class AdminSeeder extends Seeder
             'username' => 'admin',
             'user_type' => 'admin',
             'password' => Hash::make('admin'),
+            'remember_token' => Str::random(10),
+            'created_at' => date('Y-m-d h:i:s'),
+            'updated_at' => date('Y-m-d h:i:s'),
         ]);
 
         DB::table('user_details')->insert([
@@ -25,6 +29,8 @@ class AdminSeeder extends Seeder
             'first_name' => 'Admin',
             'email' => 'admin@email.com',
             'last_name' => 'Admin',
+            'created_at' => date('Y-m-d h:i:s'),
+            'updated_at' => date('Y-m-d h:i:s'),
         ]);
     }
 }
