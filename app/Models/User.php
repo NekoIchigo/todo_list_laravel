@@ -19,7 +19,6 @@ class User extends Authenticatable
      */
     protected $fillable = [
         'username',
-        'email',
         'user_type',
         'password',
     ];
@@ -42,8 +41,15 @@ class User extends Authenticatable
     protected function casts(): array
     {
         return [
-            'email_verified_at' => 'datetime',
             'password' => 'hashed',
         ];
+    }
+
+    public function user_details() {
+        return $this->hasOne(UserDetails::class);
+    }
+
+    public function todos(){
+        return $this->hasMany(ToDo::class);
     }
 }
