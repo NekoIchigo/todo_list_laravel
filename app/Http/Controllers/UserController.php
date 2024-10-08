@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\User;
 use App\Traits\ApiResponseTraits;
+use DB;
 use Hash;
 use Illuminate\Http\Request;
 use Str;
@@ -17,7 +18,7 @@ class UserController extends Controller
      */
     public function index()
     {
-        $users = User::paginate(10);
+        $users = User::with("userDetail")->paginate(10);
         return $this->sendResponse($users, "User List");
     }
 
@@ -36,18 +37,25 @@ class UserController extends Controller
     {
         $formData = $request->validate([
             "username" => "required",
+            "first_name" => "required",
+            "last_name" => "required",
             "email" => "required|email",
             "user_type" => "required",
         ]);
         try {
+            DB::beginTransaction();
+
             $password = Str::random(5);
             $formData['password'] = Hash::make($password);
             $user = User::create($formData);
+            $user->userDetail()->create($formData);
+
+            DB::commit();
             return $this->sendResponse([], "User Successfully Created.");
         } catch (\Throwable $th) {
+            DB::rollBack();
             return $this->sendError($th, "Something went wrong");
         }
-
     }
 
     /**
@@ -71,7 +79,26 @@ class UserController extends Controller
      */
     public function update(Request $request, string $id)
     {
-        //
+        $formData = $request->validate([
+            "username" => "required",
+            "first_name" => "required",
+            "last_name" => "required",
+            "email" => "required|email",
+            "user_type" => "required",
+        ]);
+        try {
+            DB::beginTransaction();
+
+            $user = User::findOrFail($id);
+            $user->update($formData);
+            $user->userDetail()->update($formData);
+
+            DB::commit();
+            return $this->sendResponse([], "User Successfully Updated.");
+        } catch (\Throwable $th) {
+            DB::rollBack();
+            return $this->sendError($th, "Something went wrong");
+        }
     }
 
     /**
@@ -79,6 +106,8 @@ class UserController extends Controller
      */
     public function destroy(string $id)
     {
-        //
+        $user = User::findOrFail($id);
+        $user->delete();
+        return $this->sendResponse([], "User Successfully Deleted.");
     }
 }
