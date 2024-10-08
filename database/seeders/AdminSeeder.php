@@ -7,25 +7,24 @@ use Hash;
 use Illuminate\Database\Console\Seeds\WithoutModelEvents;
 use Illuminate\Database\Seeder;
 
-class UserSeeder extends Seeder
+class AdminSeeder extends Seeder
 {
     /**
      * Run the database seeds.
      */
     public function run(): void
     {
-        DB::table('users')->insert([
+        $userId = DB::table('users')->insertGetId([
             'username' => 'admin',
-            'email' => 'admin@email.com',
             'user_type' => 'admin',
             'password' => Hash::make('admin'),
         ]);
 
-        DB::table('users')->insert([
-            'username' => 'user',
-            'email' => 'user@email.com',
-            'user_type' => 'user',
-            'password' => Hash::make('user'),
+        DB::table('user_details')->insert([
+            'user_id' => $userId,
+            'first_name' => 'Admin',
+            'email' => 'admin@email.com',
+            'last_name' => 'Admin',
         ]);
     }
 }
