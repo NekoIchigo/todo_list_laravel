@@ -16,7 +16,10 @@ class ToDoController extends Controller
     public function index()
     {
         $userId = request()->get("user_id");
-        $data = ToDo::where("user_id", $userId)->paginate(10);
+        $data = ToDo::where("user_id", $userId)
+            ->with("user")
+            ->latest()
+            ->paginate(10);
         return $this->sendResponse($data, "To do list of current user.");
     }
 
@@ -37,7 +40,6 @@ class ToDoController extends Controller
             "description" => "required",
             "status" => ["required", "in:ongoing,done"],
         ]);
-
         try {
             DB::beginTransaction();
 
@@ -71,7 +73,7 @@ class ToDoController extends Controller
     /**
      * Update the specified resource in storage.
      */
-    public function update(Request $request, ToDo $toDo)
+    public function update(Request $request, string $id)
     {
         $formData = $request->validate([
             "description" => "required",
@@ -79,12 +81,10 @@ class ToDoController extends Controller
         ]);
 
         try {
-            DB::beginTransaction();
+            $toDo = ToDo::findOrFail($id);
             $toDo->update($formData);
-            DB::commit();
             return $this->sendResponse([], "To Do Item Successfully Updated.");
         } catch (\Throwable $th) {
-            DB::rollBack();
             return $this->sendError($th, "Something went wrong");
         }
     }
@@ -92,8 +92,9 @@ class ToDoController extends Controller
     /**
      * Remove the specified resource from storage.
      */
-    public function destroy(ToDo $toDo)
+    public function destroy(string $id)
     {
+        $toDo = ToDo::findOrFail($id);
         $toDo->delete();
         return $this->sendResponse([], "To Do Item Successfully Deleted.");
     }
