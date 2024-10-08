@@ -18,6 +18,7 @@ class AuthController extends Controller
 
         if(Auth::attempt($formData)) {
             return $this->sendResponse([
+                "user_id" => auth()->user()->id,
                 "user_type" => auth()->user()->user_type,
             ], "Login Successful");
         } else {

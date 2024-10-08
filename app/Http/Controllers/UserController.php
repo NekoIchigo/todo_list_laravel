@@ -18,7 +18,9 @@ class UserController extends Controller
      */
     public function index()
     {
-        $users = User::with("userDetail")->paginate(10);
+        $users = User::with("userDetail")
+            ->latest()
+            ->paginate(10);
         return $this->sendResponse($users, "User List");
     }
 
@@ -45,14 +47,14 @@ class UserController extends Controller
         try {
             DB::beginTransaction();
 
-            $password = Str::random(5);
-            $formData['password'] = Hash::make($password);
+            // $password = Str::random(5);
+            $formData['password'] = Hash::make("password");
             $user = User::create($formData);
             $user->userDetail()->create($formData);
 
             DB::commit();
             return $this->sendResponse([], "User Successfully Created.");
-        } catch (\Throwable $th) {
+        } catch (\Exception $th) {
             DB::rollBack();
             return $this->sendError($th, "Something went wrong");
         }
@@ -90,12 +92,16 @@ class UserController extends Controller
             DB::beginTransaction();
 
             $user = User::findOrFail($id);
-            $user->update($formData);
-            $user->userDetail()->update($formData);
+
+            $userData = $request->only(['username', 'user_type']);
+            $userDetailsData = $request->only(['first_name', 'last_name', 'email']);
+
+            $user->update($userData);
+            $user->userDetail()->update($userDetailsData);
 
             DB::commit();
             return $this->sendResponse([], "User Successfully Updated.");
-        } catch (\Throwable $th) {
+        } catch (\Exception $th) {
             DB::rollBack();
             return $this->sendError($th, "Something went wrong");
         }
@@ -107,6 +113,8 @@ class UserController extends Controller
     public function destroy(string $id)
     {
         $user = User::findOrFail($id);
+        $user->todos()->delete();
+        $user->userDetail()->delete();
         $user->delete();
         return $this->sendResponse([], "User Successfully Deleted.");
     }
